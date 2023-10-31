@@ -1,3 +1,5 @@
+// index.js
+
 import express from "express";
 import { MongoClient } from "mongodb";
 import { UsersRouter } from "./route/userRoute.js";
@@ -6,7 +8,6 @@ import 'dotenv/config';
 
 const app = express();
 const PORT = 9000;
-
 
 // Inbuilt middleware
 app.use(express.json());

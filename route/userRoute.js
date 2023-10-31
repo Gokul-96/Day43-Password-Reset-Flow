@@ -1,3 +1,5 @@
+// userRoute.js
+
 import express from 'express';
 import bcrypt from 'bcrypt';
 import nodemailer from 'nodemailer';
@@ -19,22 +21,21 @@ router.post('/signup', async (req, res) => {
   const { username, password } = req.body;
   const isUserExist = await getUserByName(username);
 
-  // validate username
   if (isUserExist) {
     res.status(400).send({ error: "Username already exists" });
     return;
   }
-  // validate username pattern
+
   if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(username)) {
     res.status(400).send({ error: "username pattern does not match" });
     return;
   }
 
-  // validate password pattern
   if (!/^(?=.*?[0-9])(?=.*?[a-z])(?=.*?[A-Z])(?=.*?[#!@%$_]).{8,}$/g.test(password)) {
     res.status(400).send({ error: "password pattern does not match" });
     return;
   }
+
   const hashedPassword = await genPassword(password);
   const result = await createUser(username, hashedPassword);
   res.status(201).json({ message: "Successfully Created" });
@@ -45,21 +46,18 @@ router.post('/login', async (req, res) => {
   const { username, password } = req.body;
   const userFromDB = await getUserByName(username);
 
-  // validate username
   if (!userFromDB) {
     res.status(400).send({ error: "Invalid Credentials" });
     return;
   }
+
   const storedDbPassword = userFromDB.password;
-  const isPasswordMatch = await bcrypt.compare(password, storedDbPassword);
+  const token = generateToken(userFromDB._id);
+  
+  // Replace the nullish coalescing operator with a ternary operator
+  const tokenToUse = token ? token : 'defaultToken';
 
-  // Check if generateToken(userFromDB._id) is nullish, if not, assign 'defaultToken'
-  const token =
-    generateToken(userFromDB._id) !== null && generateToken(userFromDB._id) !== undefined
-      ? generateToken(userFromDB._id)
-      : 'defaultToken';
-
-  res.status(201).json({ message: "Login successfully", token });
+  res.status(201).json({ message: "Login successfully", token: tokenToUse });
 });
 
 // forget password API
